@@ -61,15 +61,32 @@ três `...Section` são 0/1 de liga-desliga):
 O importador também aceita qualquer JSON "solto" que tenha essas mesmas chaves
 numéricas, e o formato `tonehub-cube-baby-bank-v1` do CubeControl.
 
+## Upload e exportação de IR (gabinete)
+
+A seção **Gabinetes / IR** (dentro da aba Pedal) permite:
+
+- Importar um arquivo `.wav` (mono ou estéreo, PCM 16/24/32-bit ou float
+  32-bit) direto num dos 8 slots de Cabinet do pedal — convertido
+  automaticamente para 48 kHz e para o formato interno que o CUBE Baby espera.
+- Exportar a IR que já está gravada num slot de volta como `.wav`, pra backup
+  ou pra reaproveitar em outro lugar.
+
+Essa é uma operação de **apagar + regravar um setor de memória flash**, mais
+arriscada que só mexer em knobs — a interface sempre pede confirmação antes,
+avisa quando você escolhe um dos 7 slots de fábrica (em vez do slot 8,
+recomendado para upload) e mostra uma barra de progresso. Veja
+[`TESTE-COM-PEDAL.md`](TESTE-COM-PEDAL.md) para um roteiro de teste completo.
+
 ## Limitações conhecidas
 
 - Testado contra documentação e capturas reais de outros projetos
   open source, mas **não contra um pedal físico neste ambiente** (o sandbox não
   tem porta USB). Teste com cuidado e compare com o CubeSuite antes de confiar
-  100% nos valores.
+  100% nos valores — siga o roteiro em `TESTE-COM-PEDAL.md`.
 - Cobre os 13 parâmetros "ao vivo" de cada preset (pré-amp, delay, reverb,
-  modulação, cabinet/IR, volume) — não cobre upload de arquivos de IR (resposta
-  de impulso) nem firmware, que são operações bem mais arriscadas.
+  modulação, cabinet/IR, volume) e upload/exportação de IR — não cobre
+  atualização de firmware, que é uma operação ainda mais arriscada e não foi
+  implementada de propósito.
 - Web MIDI com SysEx só funciona em navegadores baseados em Chromium
   (Chrome, Edge, Brave...). Firefox e Safari não suportam.
 

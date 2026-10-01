@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import { ParamEditor } from "./ParamEditor";
 import { ConnectPanel } from "./ConnectPanel";
+import { IrPanel } from "./IrPanel";
 import { CubeBabyClient } from "../midi/cubeBabyClient";
 import type { PresetSlotId } from "../protocol/preset";
 import { LIVE_PARAM_NAMES, type LiveParamName } from "../protocol/live";
@@ -179,6 +180,8 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
       {!connected && <p className="muted">Sem pedal conectado: você ainda pode importar, editar e exportar arquivos de preset normalmente. Para gravar no hardware, conecte o USB acima.</p>}
 
       <ParamEditor params={currentParams} onChange={handleParamChange} disabled={busy} />
+
+      <IrPanel client={client} connected={connected} slot={slot} />
     </div>
   );
 }

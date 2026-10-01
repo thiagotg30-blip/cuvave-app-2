@@ -225,6 +225,11 @@ input[type="range"] {
   width: 100%;
 }
 
+.knob-row select {
+  width: 100%;
+  min-width: 0;
+}
+
 .drop-zone {
   border: 2px dashed transparent;
   border-radius: 12px;
@@ -309,6 +314,35 @@ input[type="range"] {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+}
+
+.ir-panel {
+  margin-top: 16px;
+}
+
+.ir-header {
+  margin-bottom: 10px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--panel-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
 }
 
 .app-footer {
