@@ -127,6 +127,20 @@ h4 {
   font-size: 0.85rem;
 }
 
+.header-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.header-controls .switch {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  padding: 7px 12px;
+  border-radius: 999px;
+}
+
 .tabs {
   display: flex;
   gap: 6px;
@@ -517,6 +531,115 @@ select:focus,
   display: flex;
   flex-wrap: wrap;
   gap: 18px 14px;
+}
+
+.block-description {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: -6px 0 14px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid var(--block-accent, var(--accent));
+}
+
+.block-description.muted-warning {
+  border-left-color: var(--error);
+  color: #d9a6a6;
+}
+
+.knob-explainers {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px dashed var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.knob-explainers li {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.knob-explainers strong {
+  color: var(--text);
+}
+
+/* ---------- Onboarding / starter presets ---------- */
+
+.onboarding,
+.starter-presets {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+}
+
+.onboarding-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.onboarding-toggle span {
+  flex: 1;
+  text-align: left;
+}
+
+.onboarding-toggle .chev {
+  transition: transform 0.15s ease;
+  color: var(--muted);
+}
+
+.onboarding-toggle .chev.open {
+  transform: rotate(180deg);
+}
+
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.onboarding-card {
+  background: var(--panel-2);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.onboarding-card strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+
+.starter-presets .preset-grid {
+  margin-top: 14px;
+}
+
+.starter-card .preset-card-actions {
+  justify-content: flex-start;
+}
+
+.btn-small {
+  padding: 6px 10px;
+  font-size: 0.78rem;
 }
 
 /* ---------- Knob ---------- */

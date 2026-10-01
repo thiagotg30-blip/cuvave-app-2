@@ -10,6 +10,8 @@ import type { PresetParams } from "../library/types";
 import { parseImportedPresetFile, downloadJson, presetToFile } from "../library/presetFile";
 import { addPreset, importPresets } from "../library/storage";
 import { DownloadCloud, UploadCloud, Save, RefreshCw, Cable } from "lucide-react";
+import { useBeginnerMode } from "../beginnerMode";
+import { OnboardingPanel } from "./OnboardingPanel";
 
 const EMPTY_PARAMS: PresetParams = Object.fromEntries(LIVE_PARAM_NAMES.map((n) => [n, 0])) as PresetParams;
 
@@ -28,6 +30,7 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
   const [busy, setBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const writeTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const [beginnerMode] = useBeginnerMode();
 
   const currentParams = slotParams[slot];
 
@@ -147,6 +150,7 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
 
   return (
     <div className="tab-content">
+      {beginnerMode && <OnboardingPanel />}
       <ConnectPanel
         client={client}
         connected={connected}

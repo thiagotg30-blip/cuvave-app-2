@@ -5,6 +5,7 @@ import { PREAMP_TYPES, cabinetLabel, modulationLabel, preampTypeLabel } from "..
 import { Knob } from "./Knob";
 import { Switch } from "./Switch";
 import { BLOCK_ICONS } from "./blockIcons";
+import { useBeginnerMode } from "../beginnerMode";
 
 interface Props {
   readonly params: PresetParams;
@@ -19,6 +20,8 @@ function helperLabel(param: LiveParamName, value: number): string | undefined {
 }
 
 export function ParamEditor({ params, onChange, disabled }: Props) {
+  const [beginnerMode] = useBeginnerMode();
+
   return (
     <div className="block-grid">
       {BLOCKS.map((block) => {
@@ -44,6 +47,11 @@ export function ParamEditor({ params, onChange, disabled }: Props) {
               )}
             </header>
 
+            {beginnerMode && <p className="block-description">{block.description}</p>}
+            {beginnerMode && block.toggle && params[block.toggle.param] !== 1 && (
+              <p className="block-description muted-warning">{block.toggle.beginnerHelp}</p>
+            )}
+
             {block.id === "drive" && (
               <div className="preamp-select">
                 <span className="field-label">Tipo de pré-amp</span>
@@ -59,6 +67,11 @@ export function ParamEditor({ params, onChange, disabled }: Props) {
                   ))}
                 </select>
                 <span className="field-hint">{preampTypeLabel(params.type)}</span>
+                {beginnerMode && (
+                  <span className="field-hint">
+                    {block.knobs.find((k) => k.param === "type")?.beginnerHelp}
+                  </span>
+                )}
               </div>
             )}
 
@@ -79,6 +92,18 @@ export function ParamEditor({ params, onChange, disabled }: Props) {
                   />
                 ))}
             </div>
+
+            {beginnerMode && (
+              <ul className="knob-explainers">
+                {block.knobs
+                  .filter((k) => k.param !== "type")
+                  .map((knob) => (
+                    <li key={knob.param}>
+                      <strong>{knob.label}:</strong> {knob.beginnerHelp}
+                    </li>
+                  ))}
+              </ul>
+            )}
           </section>
         );
       })}

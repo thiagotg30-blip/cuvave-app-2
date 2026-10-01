@@ -3,13 +3,24 @@ import { PedalTab } from "./components/PedalTab";
 import { LibraryTab } from "./components/LibraryTab";
 import { CubeBabyClient } from "./midi/cubeBabyClient";
 import { Guitar, Sliders, Library } from "lucide-react";
+import { BeginnerModeProvider, useBeginnerMode } from "./beginnerMode";
+import { Switch } from "./components/Switch";
 
 type Tab = "pedal" | "library";
 
 export function App() {
+  return (
+    <BeginnerModeProvider>
+      <AppShell />
+    </BeginnerModeProvider>
+  );
+}
+
+function AppShell() {
   const client = useMemo(() => new CubeBabyClient(), []);
   const [tab, setTab] = useState<Tab>("pedal");
   const [pedalConnected, setPedalConnected] = useState(false);
+  const [beginnerMode, setBeginnerMode] = useBeginnerMode();
 
   return (
     <div className="app">
@@ -29,14 +40,22 @@ export function App() {
             </p>
           </div>
         </div>
-        <nav className="tabs">
-          <button className={tab === "pedal" ? "tab active" : "tab"} onClick={() => setTab("pedal")}>
-            <Sliders size={16} /> Pedal
-          </button>
-          <button className={tab === "library" ? "tab active" : "tab"} onClick={() => setTab("library")}>
-            <Library size={16} /> Biblioteca
-          </button>
-        </nav>
+        <div className="header-controls">
+          <nav className="tabs">
+            <button className={tab === "pedal" ? "tab active" : "tab"} onClick={() => setTab("pedal")}>
+              <Sliders size={16} /> Pedal
+            </button>
+            <button className={tab === "library" ? "tab active" : "tab"} onClick={() => setTab("library")}>
+              <Library size={16} /> Biblioteca
+            </button>
+          </nav>
+          <Switch
+            checked={beginnerMode}
+            onChange={setBeginnerMode}
+            label="Modo iniciante (explica tudo)"
+            help="Mostra explicações em linguagem simples do que cada ajuste faz"
+          />
+        </div>
       </header>
 
       {tab === "pedal" ? (

@@ -4,11 +4,13 @@ import { StatusBanner, useStatus } from "./StatusBanner";
 import type { CubeBabyClient } from "../midi/cubeBabyClient";
 import type { PresetSlotId } from "../protocol/preset";
 import type { LibraryPreset } from "../library/types";
-import { listPresets, importPresets, removePreset, updatePreset } from "../library/storage";
+import { addPreset, listPresets, importPresets, removePreset, updatePreset } from "../library/storage";
 import { parseImportedPresetFile, downloadJson, presetToFile, libraryToFile } from "../library/presetFile";
 import { LIVE_PARAM_NAMES } from "../protocol/live";
 import { preampTypeLabel } from "../catalog";
 import { UploadCloud, Download, PencilLine, Trash2, Zap, FolderOpen, X } from "lucide-react";
+import { StarterPresets } from "./StarterPresets";
+import type { StarterPreset } from "../library/starterPresets";
 
 export function LibraryTab({ client, connected }: { readonly client: CubeBabyClient; readonly connected: boolean }) {
   const [presets, setPresets] = useState<LibraryPreset[]>([]);
@@ -41,6 +43,12 @@ export function LibraryTab({ client, connected }: { readonly client: CubeBabyCli
     setDragOver(false);
     const files = Array.from(e.dataTransfer.files).filter((f) => f.name.endsWith(".json"));
     files.forEach((f) => void importFromFile(f));
+  }
+
+  function handleAddStarterPreset(preset: StarterPreset) {
+    addPreset(preset.name, preset.params, preset.description);
+    refresh();
+    setStatus(`"${preset.name}" adicionado à biblioteca.`, "success");
   }
 
   function handleDelete(id: string) {
@@ -107,6 +115,8 @@ export function LibraryTab({ client, connected }: { readonly client: CubeBabyCli
       </div>
 
       <StatusBanner status={status} />
+
+      <StarterPresets existingNames={presets.map((p) => p.name)} onAdd={handleAddStarterPreset} />
 
       {presets.length === 0 ? (
         <div className="empty-state">
