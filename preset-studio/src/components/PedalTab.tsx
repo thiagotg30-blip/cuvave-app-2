@@ -2,12 +2,14 @@ import { useCallback, useRef, useState } from "react";
 import { ParamEditor } from "./ParamEditor";
 import { ConnectPanel } from "./ConnectPanel";
 import { IrPanel } from "./IrPanel";
+import { StatusBanner, useStatus } from "./StatusBanner";
 import { CubeBabyClient } from "../midi/cubeBabyClient";
 import type { PresetSlotId } from "../protocol/preset";
 import { LIVE_PARAM_NAMES, type LiveParamName } from "../protocol/live";
 import type { PresetParams } from "../library/types";
 import { parseImportedPresetFile, downloadJson, presetToFile } from "../library/presetFile";
 import { addPreset, importPresets } from "../library/storage";
+import { DownloadCloud, UploadCloud, Save, RefreshCw, Cable } from "lucide-react";
 
 const EMPTY_PARAMS: PresetParams = Object.fromEntries(LIVE_PARAM_NAMES.map((n) => [n, 0])) as PresetParams;
 
@@ -22,7 +24,7 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
     B: EMPTY_PARAMS,
     C: EMPTY_PARAMS,
   });
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useStatus();
   const [busy, setBusy] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const writeTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -42,13 +44,13 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
     const key = `${slot}:${param}`;
     clearTimeout(writeTimers.current[key]);
     writeTimers.current[key] = setTimeout(() => {
-      client.writeLiveParam(slot, param, value).catch((err) => setStatus(`Falha ao gravar ${param}: ${err.message ?? err}`));
+      client.writeLiveParam(slot, param, value).catch((err) => setStatus(`Falha ao gravar ${param}: ${err.message ?? err}`, "error"));
     }, 60);
   }
 
   async function handleReadFromPedal() {
     setBusy(true);
-    setStatus("Lendo presets do pedal...");
+    setStatus("Lendo presets do pedal...", "busy");
     try {
       const bank = await client.readPresetBank();
       const next: Record<PresetSlotId, PresetParams> = { A: EMPTY_PARAMS, B: EMPTY_PARAMS, C: EMPTY_PARAMS };
@@ -70,9 +72,9 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
         };
       }
       setSlotParams(next);
-      setStatus("Presets lidos com sucesso.");
+      setStatus("Presets lidos com sucesso.", "success");
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err));
+      setStatus(err instanceof Error ? err.message : String(err), "error");
     } finally {
       setBusy(false);
     }
@@ -103,6 +105,7 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
         `Importado "${chosen.name}" para o editor do slot ${slot}.` +
           (presets.length > 1 ? ` (o arquivo tinha ${presets.length} presets; os demais ficam disponíveis na aba Biblioteca)` : "") +
           (warnings.length ? ` — ${warnings.join(" ")}` : ""),
+        "success",
       );
       if (presets.length > 1) {
         importPresets(presets.slice(1));
@@ -115,11 +118,11 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
           setBusy(true);
           await writeAllParamsToDevice(chosen.params);
           setBusy(false);
-          setStatus(`"${chosen.name}" gravado no slot ${slot} do pedal.`);
+          setStatus(`"${chosen.name}" gravado no slot ${slot} do pedal.`, "success");
         }
       }
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err));
+      setStatus(err instanceof Error ? err.message : String(err), "error");
     }
   }
 
@@ -132,13 +135,14 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
       updatedAt: new Date().toISOString(),
     });
     downloadJson(`cube-baby-slot-${slot}.json`, file);
+    setStatus(`Slot ${slot} exportado.`, "success");
   }
 
   function handleSaveToLibrary() {
     const name = window.prompt("Nome para salvar este preset na biblioteca:", `Slot ${slot} - ${new Date().toLocaleDateString()}`);
     if (!name) return;
     addPreset(name, currentParams);
-    setStatus(`Preset "${name}" salvo na biblioteca.`);
+    setStatus(`Preset "${name}" salvo na biblioteca.`, "success");
   }
 
   return (
@@ -158,26 +162,44 @@ export function PedalTab({ client }: { readonly client: CubeBabyClient }) {
       />
 
       <div className="toolbar">
-        <div className="slot-tabs">
+        <div className="slot-tabs" role="tablist" aria-label="Preset">
           {SLOTS.map((s) => (
-            <button key={s} className={s === slot ? "slot-tab active" : "slot-tab"} onClick={() => setSlot(s)}>
-              Preset {s}
+            <button
+              key={s}
+              role="tab"
+              aria-selected={s === slot}
+              className={s === slot ? "footswitch active" : "footswitch"}
+              onClick={() => setSlot(s)}
+            >
+              <span className="footswitch-led" />
+              {s}
             </button>
           ))}
         </div>
         <div className="toolbar-actions">
-          <button disabled={!connected || busy} onClick={() => void handleReadFromPedal()}>
-            Ler do pedal
+          <button className="btn" disabled={!connected || busy} onClick={() => void handleReadFromPedal()}>
+            <RefreshCw size={15} /> Ler do pedal
           </button>
-          <button onClick={handleImportClick}>Importar arquivo...</button>
-          <button onClick={handleExportSlot}>Exportar este slot</button>
-          <button onClick={handleSaveToLibrary}>Salvar na biblioteca</button>
+          <button className="btn" onClick={handleImportClick}>
+            <UploadCloud size={15} /> Importar arquivo
+          </button>
+          <button className="btn" onClick={handleExportSlot}>
+            <DownloadCloud size={15} /> Exportar slot
+          </button>
+          <button className="btn" onClick={handleSaveToLibrary}>
+            <Save size={15} /> Salvar na biblioteca
+          </button>
           <input ref={fileInputRef} type="file" accept="application/json,.json" hidden onChange={(e) => void handleFileChosen(e)} />
         </div>
       </div>
 
-      {status && <p className="status-text">{status}</p>}
-      {!connected && <p className="muted">Sem pedal conectado: você ainda pode importar, editar e exportar arquivos de preset normalmente. Para gravar no hardware, conecte o USB acima.</p>}
+      <StatusBanner status={status} />
+      {!connected && (
+        <p className="hint-text">
+          <Cable size={14} /> Sem pedal conectado: você ainda pode importar, editar e exportar arquivos de preset
+          normalmente. Para gravar no hardware, conecte o USB acima.
+        </p>
+      )}
 
       <ParamEditor params={currentParams} onChange={handleParamChange} disabled={busy} />
 

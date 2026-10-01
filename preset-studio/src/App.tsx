@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { PedalTab } from "./components/PedalTab";
 import { LibraryTab } from "./components/LibraryTab";
 import { CubeBabyClient } from "./midi/cubeBabyClient";
+import { Guitar, Sliders, Library } from "lucide-react";
 
 type Tab = "pedal" | "library";
 
@@ -12,20 +13,28 @@ export function App() {
 
   return (
     <div className="app">
+      <div className="app-glow" aria-hidden="true" />
       <header className="app-header">
-        <div>
-          <h1>CUBE Baby Preset Studio</h1>
-          <p className="muted">
-            Editor não oficial para o pedal M-VAVE / CUVAVE CUBE Baby — importe presets de arquivo, organize sua
-            biblioteca e edite de um jeito mais direto que o CubeSuite.
-          </p>
+        <div className="brand">
+          <span className="brand-mark">
+            <Guitar size={22} strokeWidth={2.2} />
+          </span>
+          <div>
+            <h1>
+              CUBE Baby <span className="brand-accent">Preset Studio</span>
+            </h1>
+            <p className="muted">
+              Editor não oficial para o pedal M-VAVE / CUVAVE CUBE Baby — importe presets de arquivo, organize sua
+              biblioteca e edite de um jeito mais direto que o CubeSuite.
+            </p>
+          </div>
         </div>
         <nav className="tabs">
           <button className={tab === "pedal" ? "tab active" : "tab"} onClick={() => setTab("pedal")}>
-            Pedal
+            <Sliders size={16} /> Pedal
           </button>
           <button className={tab === "library" ? "tab active" : "tab"} onClick={() => setTab("library")}>
-            Biblioteca
+            <Library size={16} /> Biblioteca
           </button>
         </nav>
       </header>

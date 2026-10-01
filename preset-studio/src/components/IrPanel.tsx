@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import type { CubeBabyClient, IrUploadProgress } from "../midi/cubeBabyClient";
 import type { PresetSlotId } from "../protocol/preset";
+import { StatusBanner, useStatus } from "./StatusBanner";
+import { Box, UploadCloud, DownloadCloud } from "lucide-react";
 
 interface Props {
   readonly client: CubeBabyClient;
@@ -19,13 +21,13 @@ const STEP_LABEL: Record<IrUploadProgress["step"], string> = {
 export function IrPanel({ client, connected, slot }: Props) {
   const [slotIndex, setSlotIndex] = useState(7); // 7 = Cabinet 8, slot "upload" recomendado
   const [progress, setProgress] = useState<IrUploadProgress | null>(null);
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useStatus();
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload(file: File) {
     if (!connected) {
-      setStatus("Conecte o pedal primeiro.");
+      setStatus("Conecte o pedal primeiro.", "error");
       return;
     }
     const risky = slotIndex !== 7;
@@ -39,7 +41,7 @@ export function IrPanel({ client, connected, slot }: Props) {
     if (!confirmed) return;
 
     setBusy(true);
-    setStatus("");
+    setStatus("", "info");
     try {
       const bytes = new Uint8Array(await file.arrayBuffer());
       const result = await client.loadIrFromWav(bytes, { slotIndex, slot, onProgress: setProgress });
@@ -47,9 +49,10 @@ export function IrPanel({ client, connected, slot }: Props) {
         result.verified
           ? `IR gravada com sucesso no Cabinet ${result.cabinet} e selecionada no preset ${slot}.`
           : `A gravação terminou, mas a verificação encontrou diferenças. Recomendo tentar de novo antes de confiar nesse slot.`,
+        result.verified ? "success" : "error",
       );
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err));
+      setStatus(err instanceof Error ? err.message : String(err), "error");
     } finally {
       setBusy(false);
       setProgress(null);
@@ -58,11 +61,11 @@ export function IrPanel({ client, connected, slot }: Props) {
 
   async function handleExport() {
     if (!connected) {
-      setStatus("Conecte o pedal primeiro.");
+      setStatus("Conecte o pedal primeiro.", "error");
       return;
     }
     setBusy(true);
-    setStatus("Lendo IR do pedal...");
+    setStatus("Lendo IR do pedal...", "busy");
     try {
       const wav = await client.exportIrRomToWav(slotIndex, (pct) => setProgress({ step: "verificando", pct }));
       const blob = new Blob([wav.slice().buffer], { type: "audio/wav" });
@@ -72,9 +75,9 @@ export function IrPanel({ client, connected, slot }: Props) {
       a.download = `cube-baby-ir-cabinet-${slotIndex + 1}.wav`;
       a.click();
       URL.revokeObjectURL(url);
-      setStatus(`IR do Cabinet ${slotIndex + 1} exportada como .wav.`);
+      setStatus(`IR do Cabinet ${slotIndex + 1} exportada como .wav.`, "success");
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err));
+      setStatus(err instanceof Error ? err.message : String(err), "error");
     } finally {
       setBusy(false);
       setProgress(null);
@@ -83,15 +86,14 @@ export function IrPanel({ client, connected, slot }: Props) {
 
   return (
     <section className="panel ir-panel">
-      <header className="ir-header">
-        <div>
-          <strong>Gabinetes / Respostas de impulso (IR)</strong>
-          <p className="muted small">
-            Carregue um arquivo .wav com uma resposta de impulso de gabinete num dos 8 slots do pedal. Operação mais
-            demorada e arriscada que editar knobs — leia o aviso antes de confirmar.
-          </p>
-        </div>
+      <header className="panel-title">
+        <Box size={16} />
+        <span>Gabinetes / Respostas de impulso (IR)</span>
       </header>
+      <p className="muted small">
+        Carregue um arquivo .wav com uma resposta de impulso de gabinete num dos 8 slots do pedal. Operação mais
+        demorada e arriscada que editar knobs — leia o aviso antes de confirmar.
+      </p>
 
       <div className="connect-row">
         <label>
@@ -105,11 +107,11 @@ export function IrPanel({ client, connected, slot }: Props) {
             ))}
           </select>
         </label>
-        <button disabled={!connected || busy} onClick={() => fileRef.current?.click()}>
-          Importar .wav para este slot
+        <button className="btn" disabled={!connected || busy} onClick={() => fileRef.current?.click()}>
+          <UploadCloud size={15} /> Importar .wav
         </button>
-        <button disabled={!connected || busy} onClick={() => void handleExport()}>
-          Exportar este slot como .wav
+        <button className="btn" disabled={!connected || busy} onClick={() => void handleExport()}>
+          <DownloadCloud size={15} /> Exportar .wav
         </button>
         <input
           ref={fileRef}
@@ -135,8 +137,8 @@ export function IrPanel({ client, connected, slot }: Props) {
         </div>
       )}
 
-      {status && <p className="status-text">{status}</p>}
-      {!connected && <p className="muted small">Conecte o pedal na seção acima para usar upload/exportação de IR.</p>}
+      <StatusBanner status={status} />
+      {!connected && <p className="hint-text">Conecte o pedal na seção acima para usar upload/exportação de IR.</p>}
     </section>
   );
 }

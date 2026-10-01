@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { CubeBabyClient, type MidiPortInfo } from "../midi/cubeBabyClient";
+import { StatusBanner, useStatus } from "./StatusBanner";
+import { Usb, Plug, PlugZap, TriangleAlert } from "lucide-react";
 
 interface Props {
   readonly client: CubeBabyClient;
@@ -17,7 +19,7 @@ export function ConnectPanel({ client, connected, deviceName, onConnected, onDis
   const [outputs, setOutputs] = useState<MidiPortInfo[]>([]);
   const [inputId, setInputId] = useState<string>("");
   const [outputId, setOutputId] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useStatus();
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -35,22 +37,25 @@ export function ConnectPanel({ client, connected, deviceName, onConnected, onDis
         if (guessIn) setInputId(guessIn.id);
         if (guessOut) setOutputId(guessOut.id);
       })
-      .catch((err) => setStatus(String(err.message ?? err)));
+      .catch((err) => setStatus(String(err.message ?? err), "error"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!supported) {
     return (
       <div className="panel warning">
-        <strong>Seu navegador não suporta a Web MIDI API.</strong>
-        <p>Abra esta página no Google Chrome ou Microsoft Edge, no computador onde o pedal está plugado via USB.</p>
+        <TriangleAlert size={18} />
+        <div>
+          <strong>Seu navegador não suporta a Web MIDI API.</strong>
+          <p className="muted">Abra esta página no Google Chrome ou Microsoft Edge, no computador onde o pedal está plugado via USB.</p>
+        </div>
       </div>
     );
   }
 
   async function handleConnect() {
     setBusy(true);
-    setStatus("Conectando...");
+    setStatus("Conectando...", "busy");
     try {
       await client.connect(inputId, outputId);
       let name: string | null = null;
@@ -59,10 +64,10 @@ export function ConnectPanel({ client, connected, deviceName, onConnected, onDis
       } catch {
         name = null;
       }
-      setStatus("");
+      setStatus("", "info");
       onConnected(name);
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : String(err));
+      setStatus(err instanceof Error ? err.message : String(err), "error");
     } finally {
       setBusy(false);
     }
@@ -76,17 +81,30 @@ export function ConnectPanel({ client, connected, deviceName, onConnected, onDis
   if (connected) {
     return (
       <div className="panel connected">
-        <div>
-          <strong>Pedal conectado</strong>
-          <span className="muted"> {deviceName ? `· identificado como "${deviceName}"` : "· sem resposta de identificação (ok para alguns modelos)"}</span>
+        <div className="connected-info">
+          <span className="connected-dot" />
+          <PlugZap size={18} />
+          <div>
+            <strong>Pedal conectado</strong>
+            <span className="muted">
+              {" "}
+              {deviceName ? `· identificado como "${deviceName}"` : "· sem resposta de identificação (ok para alguns modelos)"}
+            </span>
+          </div>
         </div>
-        <button onClick={() => void handleDisconnect()}>Desconectar</button>
+        <button className="btn" onClick={() => void handleDisconnect()}>
+          Desconectar
+        </button>
       </div>
     );
   }
 
   return (
     <div className="panel">
+      <div className="panel-title">
+        <Usb size={16} />
+        <span>Conexão USB</span>
+      </div>
       <div className="connect-row">
         <label>
           Entrada MIDI
@@ -110,13 +128,13 @@ export function ConnectPanel({ client, connected, deviceName, onConnected, onDis
             ))}
           </select>
         </label>
-        <button disabled={!inputId || !outputId || busy} onClick={() => void handleConnect()}>
-          {busy ? "Conectando..." : "Conectar"}
+        <button className="btn btn-primary" disabled={!inputId || !outputId || busy} onClick={() => void handleConnect()}>
+          <Plug size={15} /> {busy ? "Conectando..." : "Conectar"}
         </button>
       </div>
-      {status && <p className="status-text">{status}</p>}
+      <StatusBanner status={status} />
       {inputs.length === 0 && (
-        <p className="muted">
+        <p className="hint-text">
           Nenhuma porta MIDI encontrada. Plugue o CUBE Baby via USB e clique em "Permitir" quando o navegador pedir acesso a
           dispositivos MIDI.
         </p>
