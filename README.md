@@ -1,26 +1,39 @@
-# cuvave-app-2
+# Cube Baby Studio
 
-Este repositório continha apenas o `CubeSuite.exe` oficial (editor Windows da
-M-VAVE/CUVAVE para a linha de pedais Cube — Cube Baby, Cube Sugar, IR Box,
-etc.) compilado, sem código-fonte.
+Editor **desktop nativo** (Qt/PySide6, sem navegador) para o pedal M-VAVE/CUVAVE **CUBE Baby**.
+Projeto independente, não afiliado à fabricante.
 
-## CubeSuite.exe original: faltavam plugins do Qt
+## Rodar (Windows)
+Precisa do **Python 3.12** (o 3.14 ainda não tem pacote pronto do `python-rtmidi`).
+Se não tiver: `winget install Python.Python.3.12`. Pode ficar com o 3.14 instalado também.
 
-O `.exe` original falhava ao abrir com o erro *"This application failed to
-start because no Qt platform plugin could be initialized"*. Isso acontecia
-porque o deploy estava incompleto: faltavam as pastas `platforms/`,
-`imageformats/` e `styles/` com os plugins do Qt 5.15.2 (mesma versão das DLLs
-que já estavam no repo). Essas pastas foram adicionadas na raiz do repositório
-— baixe o repositório inteiro (não só o `.exe`) para que o programa abra
-normalmente.
+- **`run_debug.bat`**: cria um ambiente isolado (`.venv`), instala tudo e abre o programa com o console aberto.
+- **`build_exe.bat`**: gera `dist\CubeBabyStudio\CubeBabyStudio.exe`.
+- Sem pedal: `.venv\Scripts\python main.py --sim` abre com um pedal simulado.
 
-## Editor web alternativo (não oficial)
+> Feche o CubeSuite antes: dois programas não podem usar a porta MIDI do pedal ao mesmo tempo.
+> Se der erro, ele aparece numa janela e fica em `%USERPROFILE%\CubeBabyStudio\crash.log`.
 
-Como não é possível modificar o executável fechado em si, foi adicionado em
-[`preset-studio/`](preset-studio/) um **editor web alternativo (não oficial)**
-para o Cube Baby, com o que faltava no app original: importar presets a partir
-de um arquivo, biblioteca de presets, upload/exportação de IR (resposta de
-impulso) e uma interface mais direta. Veja
-[`preset-studio/README.md`](preset-studio/README.md) para instruções de uso e
-[`preset-studio/TESTE-COM-PEDAL.md`](preset-studio/TESTE-COM-PEDAL.md) para um
-roteiro de teste com o pedal físico.
+## O que faz
+- Conecta no pedal por USB-MIDI (SysEx), detecta a porta sozinho e lê os 3 presets (A/B/C).
+- Edita em tempo real: tipo de pré-amp, gain, tom, delay, reverb, modulação, cabinet, volume.
+- Importa/exporta presets `.json` (compatível com o preset-studio web e com bancos do CubeControl/ToneHub).
+- Biblioteca local em `~/CubeBabyStudio/biblioteca`. Backup automático em `~/CubeBabyStudio/backups`
+  antes de gravar um preset importado no pedal.
+
+## Ainda não tem
+- Upload/exportação de IR (.wav): mexe na flash do pedal, fica pra uma segunda etapa.
+- Atualização de firmware: de propósito, por ser a operação mais arriscada.
+
+## Estrutura
+```
+cubebaby/protocol.py    SysEx: codificação 7-bit, envelope, checksum, presets, endereços
+cubebaby/client.py      conexão rtmidi (CubeBabyClient) + pedal simulado
+cubebaby/presetfile.py  .json de presets e biblioteca
+cubebaby/ui.py          janela Qt
+tests/                  testes do protocolo
+```
+
+## Créditos
+O protocolo vem da engenharia reversa comunitária: cubecontrol (MIT) e cuvave-midi (GPL-3.0, usado só como referência).
+Se for distribuir o programa, confira as licenças desses projetos.
