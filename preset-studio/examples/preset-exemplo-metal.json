@@ -1,0 +1,21 @@
+{
+  "format": "cuvave-preset-studio-preset-v1",
+  "name": "Metal moderno (exemplo)",
+  "notes": "Preset de exemplo só para testar a importação por arquivo.",
+  "params": {
+    "type": 6,
+    "gain": 7,
+    "tone": 10,
+    "reverb": 3,
+    "feedback": 20,
+    "volume": 100,
+    "time": 8,
+    "mix": 15,
+    "modulation": 8,
+    "cabinet": 4,
+    "irSection": 1,
+    "delaySection": 0,
+    "toneSection": 1
+  },
+  "exportedAt": "2026-10-01T00:00:00.000Z"
+}
